@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Phát hiện người lạ</title>
+    <style>
+        /* Đặt font và màu sắc chính */
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap');
+        body {
+            margin: 0;
+            font-family: 'Poppins', sans-serif;
+            background: linear-gradient(135deg, #1e3c72, #2a5298);
+            color: #fff;
+            text-align: center;
+            display: flex; /* Thêm để sử dụng Flexbox */
+            justify-content: center; /* Canh giữa theo trục ngang */
+            align-items: center; /* Canh giữa theo trục dọc */
+            height: 133vh; /* Chiều cao toàn màn hình */
+            flex-direction: column; /* Xếp các phần tử theo cột */
+        }
+        .video-container {
+            margin: 0 auto; /* Đảm bảo canh giữa chính xác */
+            border: 5px solid #fff;
+            border-radius: 15px;
+            overflow: hidden;
+            width: 80%;
+            max-width: 900px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+        }
+        /* Tiêu đề chính */
+        h1 {
+            margin-top: 20px;
+            font-size: 2.5rem;
+            font-weight: 600;
+            text-shadow: 2px 2px 5px rgba(0, 0, 0, 0.3);
+        }
+
+        /* Container video */
+        .video-container {
+            margin-top: 30px;
+            border: 5px solid #fff;
+            border-radius: 15px;
+            overflow: hidden;
+            width: 80%;
+            max-width: 900px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+        }
+
+        /* Video phát trực tiếp */
+        img {
+            width: 100%;
+            height: auto;
+        }
+
+        /* Nút điều hướng hoặc thao tác */
+        .button {
+            margin-top: 20px;
+            padding: 10px 20px;
+            background: #ff6f61;
+            color: #fff;
+            font-size: 1rem;
+            font-weight: 500;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background 0.3s ease;
+        }
+
+        .button.active {
+            background: #4caf50; /* Màu xanh khi bật cảnh báo */
+        }
+
+        .button:hover {
+            background: #ff4a39;
+        }
+
+        /* Footer */
+        footer {
+            margin-top: 40px;
+            font-size: 0.9rem;
+            color: rgba(255, 255, 255, 0.8);
+        }
+
+        footer a {
+            color: #ff6f61;
+            text-decoration: none;
+        }
+
+        footer a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <h1>Giám sát an ninh bằng phương pháp học sâu</h1>
+    <div class="video-container">
+        <img src="/video_feed" alt="Video Stream">
+    </div>
+    <button id="actionButton" class="button" onclick="toggleAlert()">Bật cảnh báo</button>
+    <div>
+        <label>Thời gian bắt đầu:</label>
+        <input type="time" id="startTime" />
+        <label>Thời gian kết thúc:</label>
+        <input type="time" id="endTime" />
+        <button onclick="updateAlertTime()">Cập nhật thời gian</button>
+    </div>
+    <p id="alertTime">Thời gian cảnh báo: </p>
+    <script>
+        let isAlerting = false; // Biến trạng thái cảnh báo
+        const alertAudio = new Audio('TT\police.wav'); // Đường dẫn đến file âm thanh
+    
+        function toggleAlert() {
+            const button = document.getElementById('actionButton');
+            isAlerting = !isAlerting;
+    
+            // Cập nhật nội dung nút và màu sắc
+            if (isAlerting) {
+                button.textContent = 'Tắt cảnh báo';
+                button.classList.remove('active');
+    
+                // Phát âm thanh cảnh báo
+                alertAudio.loop = true; // Lặp âm thanh nếu cần
+                alertAudio.play().catch(error => console.error('Lỗi phát âm thanh:', error));
+            } else {
+                button.textContent = 'Bật cảnh báo';
+                button.classList.add('active');
+    
+                // Dừng âm thanh
+                alertAudio.pause();
+                alertAudio.currentTime = 0; // Đặt lại âm thanh từ đầu
+            }
+    
+            // Gửi tín hiệu đến server (nếu cần)
+            fetch('/toggle_alert', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ alerting: isAlerting })
+            }).catch(error => console.error('Lỗi khi gửi tín hiệu:', error));
+        }
+    </script> 
+    <script>
+        function updateAlertTime() {
+          const startTime = document.getElementById("startTime").value;
+          const endTime = document.getElementById("endTime").value;
+      
+          fetch("/set_alert_time", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              start_time: startTime,
+              end_time: endTime,
+            }),
+          })
+            .then((response) => response.json())
+            .then((data) => {
+              document.getElementById("alertTime").innerText = `Thời gian cảnh báo: ${data.start_time} - ${data.end_time}`;
+            });
+        }
+      </script>   
+</body>
+</html>
